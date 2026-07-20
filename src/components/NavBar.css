@@ -30,8 +30,8 @@
 
 .navbar-link.active {
   color: #ffffff;
-  background-color: var(--accent, #aa3bff);
-  box-shadow: 0 4px 15px rgba(170, 59, 255, 0.3);
+  background-color: var(--accent);
+  box-shadow: 0 4px 12px var(--accent-glow);
   font-weight: 600;
 }
 

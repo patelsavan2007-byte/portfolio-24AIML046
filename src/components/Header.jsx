@@ -2,25 +2,20 @@ import React from "react";
 import NavBar from "./NavBar";
 import "./Header.css";
 
-function Header({ themeColor }) {
-  const headerStyle = themeColor ? { backgroundColor: themeColor } : {};
-
+function Header({ brandName = "Savan Patel", onNavClick }) {
   return (
-    <header className="header" style={headerStyle}>
+    <header className="header">
       {/* Logo */}
-      <div className="logo">
-        <h2>My Portfolio</h2>
-      </div>
+      <a href="#home" className="logo" onClick={(e) => { e.preventDefault(); onNavClick("home"); }}>
+        <h2>{brandName}</h2>
+      </a>
 
       {/* Navigation */}
-      <NavBar />
+      <NavBar onNavClick={onNavClick} />
 
       {/* Button */}
-      <button 
-        className="btn"
-        style={themeColor ? { backgroundColor: "rgba(255, 255, 255, 0.15)", border: "1px solid rgba(255, 255, 255, 0.3)" } : {}}
-      >
-        Hire Me
+      <button className="subscribe-btn" onClick={() => onNavClick("contact")}>
+        Subscribe
       </button>
     </header>
   );
