@@ -1,27 +1,27 @@
 import React from "react";
+import NavBar from "./NavBar";
 import "./Header.css";
 
-function Header() {
+function Header({ themeColor }) {
+  const headerStyle = themeColor ? { backgroundColor: themeColor } : {};
+
   return (
-    <header className="header">
+    <header className="header" style={headerStyle}>
       {/* Logo */}
       <div className="logo">
         <h2>My Portfolio</h2>
       </div>
 
       {/* Navigation */}
-      <nav>
-        <ul className="nav-links">
-          <li><a href="#">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Skills</a></li>
-          <li><a href="#">Projects</a></li>
-          <li><a href="#">Contact</a></li>
-        </ul>
-      </nav>
+      <NavBar />
 
       {/* Button */}
-      <button className="btn">Hire Me</button>
+      <button 
+        className="btn"
+        style={themeColor ? { backgroundColor: "rgba(255, 255, 255, 0.15)", border: "1px solid rgba(255, 255, 255, 0.3)" } : {}}
+      >
+        Hire Me
+      </button>
     </header>
   );
 }

@@ -1,17 +1,23 @@
-import Header from './components/Header'
-import './App.css'
+import React from "react";
+import Header from "./components/Header";
+import "./App.css";
 
 function App() {
-  return (
-    <div>
-      <Header />
+  // Simple primary theme color (blue) for the Header
+  const themeColor = "#2563eb";
 
-      <main style={{ padding: '2rem' }}>
-        <h1>Welcome to my portfolio</h1>
-        <p>This is your app content rendered below the header.</p>
+  return (
+    <div className="app-container">
+      <Header themeColor={themeColor} />
+
+      <main>
+        <section id="home" className="section-block home-sec">
+          <h1>Home Section</h1>
+          <p>Welcome to the home page of College Practical 1.</p>
+        </section>
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
