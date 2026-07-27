@@ -47,36 +47,6 @@ function App() {
     }
   ];
 
-  const projects = [
-    {
-      title: "Fashion Recommendation System",
-      type: "AI / NLP / Computer Vision",
-      status: "Completed",
-      description:
-        "An AI-powered fashion recommendation system that suggests visually similar outfits and provides personalized size recommendations using deep learning and user preferences.",
-      highlights: [
-        "Image-based recommendations via CNN + cosine similarity",
-        "Smart size estimation from body measurements",
-        "Personalized results using color, brand & fit preferences",
-      ],
-      tech: ["Python", "Flask", "React", "ResNet", "MongoDB"],
-      link: "https://github.com/tirth266/Fashion-Recommdation-System",
-    },
-    {
-      title: "VisionForge 2.0",
-      type: "AI / Generative / Full-Stack",
-      status: "In Progress",
-      description:
-        "AI Text-to-Video generation service powered by Wan2.x diffusion model with a full-stack architecture including GPU workers, task queuing, and real-time job progress streaming.",
-      highlights: [
-        "Wan2.x diffusion model — 30–50 step video generation",
-        "Celery + Redis task queue with live progress updates",
-        "Nginx zero-copy static MP4 serving with 206 range support",
-      ],
-      tech: ["Next.js", "FastAPI", "Celery", "PostgreSQL", "Redis", "Docker"],
-      link: "https://github.com/savanpatel/visionforge",
-    },
-  ];
 
   const handleScrollTo = (id) => {
     const el = document.getElementById(id);
@@ -116,8 +86,8 @@ function App() {
         {/* Skills Component receives skillCategories details as a prop */}
         <Skills categories={skillCategories} />
 
-        {/* Projects Component receives projects as a prop */}
-        <Projects projects={projects} />
+        {/* Projects Component fetches public GitHub repos directly */}
+        <Projects />
 
         {/* Contact Section */}
         <Contact name={brandName} />
