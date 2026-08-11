@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import About from "./pages/About";
 import Skills from "./pages/Skills";
 import Projects from "./pages/Projects";
+import TaskManager from "./pages/TaskManager";
 import Contact from "./pages/Contact";
 import Footer from "./pages/Footer";
 import "./App.css";
@@ -88,6 +89,9 @@ function App() {
 
         {/* Projects Component fetches public GitHub repos directly */}
         <Projects />
+
+        {/* Task Management Section */}
+        <TaskManager />
 
         {/* Contact Section */}
         <Contact name={brandName} />
