@@ -27,6 +27,15 @@ const taskSchema = new mongoose.Schema(
       enum: ["low", "medium", "high"],
       default: "medium",
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TaskUser",
+      default: null, // Allow null for public tasks (created without auth)
+    },
+    lastDownloadedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },

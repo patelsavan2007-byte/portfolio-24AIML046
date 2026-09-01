@@ -11,14 +11,19 @@ if (!existsSync(LOG_DIR)) {
   mkdirSync(LOG_DIR, { recursive: true });
 }
 
-export function logActivity(action, task, ip) {
+export function logActivity(action, data, ip) {
   const entry = {
     timestamp: new Date().toISOString(),
     action,
-    taskId: task.id ?? null,
-    taskTitle: task.title ?? null,
-    taskStatus: task.status ?? null,
-    taskPriority: task.priority ?? null,
+    // Task fields
+    taskId: data.id ?? data._id ?? null,
+    taskTitle: data.title ?? null,
+    taskStatus: data.status ?? null,
+    taskPriority: data.priority ?? null,
+    // Auth fields
+    email: data.email ?? null,
+    authMethod: data.authMethod ?? null,
+    googleId: data.googleId ?? null,
     ip: ip ?? "127.0.0.1",
   };
   appendFileSync(LOG_FILE, JSON.stringify(entry) + "\n", "utf-8");
@@ -41,7 +46,7 @@ function escapeCSV(val) {
 
 export function exportLogsAsCSV() {
   const logs = getLogs();
-  const headers = ["Timestamp", "Action", "Task ID", "Task Title", "Status", "Priority", "IP Address"];
+  const headers = ["Timestamp", "Action", "Task ID", "Task Title", "Status", "Priority", "Email", "Auth Method", "Google ID", "IP Address"];
   const rows = logs.map((log) =>
     [
       log.timestamp,
@@ -50,6 +55,9 @@ export function exportLogsAsCSV() {
       log.taskTitle,
       log.taskStatus,
       log.taskPriority,
+      log.email,
+      log.authMethod,
+      log.googleId,
       log.ip,
     ].map(escapeCSV).join(",")
   );

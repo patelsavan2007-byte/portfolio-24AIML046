@@ -1,16 +1,73 @@
-# React + Vite
+# My Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack portfolio application with an Express + MongoDB API and a React (Vite) frontend, organized as a monorepo with npm workspaces.
 
-Currently, two official plugins are available:
+## Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```
+.
+├── frontend/            # React + Vite client
+│   ├── public/          # Static assets (favicon, icons)
+│   └── src/
+│       ├── components/  # layout / navigation
+│       ├── pages/       # Home, About, Skills, Projects, Tasks, Contact
+│       ├── data/        # static portfolio content
+│       ├── services/    # API / auth / task service wrappers
+│       ├── App.jsx
+│       ├── main.jsx
+│       ├── App.css
+│       └── index.css
+├── server/              # Express + MongoDB API
+│   ├── config/          # db connection
+│   ├── controllers/     # auth + task handlers
+│   ├── middleware/      # logger, error handler, auth guards, activity logger
+│   ├── models/          # TaskUser, Task
+│   ├── routes/          # auth, tasks
+│   ├── logs/            # activity log output
+│   └── server.js        # Express entry point
+├── package.json         # workspace root / orchestrator scripts
+└── .env                 # environment variables (git-ignored)
+```
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Create a `.env` in the repo root with the required variables
+   (`MONGODB_URI`, `JWT_SECRET`, `VITE_GOOGLE_CLIENT_ID`, `CLIENT_ORIGIN`).
+2. Install dependencies:
 
-## Expanding the ESLint configuration
+   ```sh
+   npm install
+   ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. Run everything (backend + frontend together):
+
+   ```sh
+   npm run dev
+   ```
+
+Or run each part separately:
+
+```sh
+npm run dev:server   # API on http://localhost:5000
+npm run dev:client   # Vite on http://localhost:5173
+```
+
+## Other scripts
+
+- `npm run build` — production build of the frontend
+- `npm run lint` — ESLint across both `frontend` and `server`
+- `npm run start:server` — start the API in production mode
+- `npm run preview` — preview the built frontend
+
+## API endpoints
+
+- `POST /api/auth/register` — create a local account
+- `POST /api/auth/login` — log in
+- `POST /api/auth/google` — authenticate with Google ID token
+- `POST /api/auth/logout` — log out
+- `GET /api/auth/me` — current user (protected)
+- `GET /api/tasks` — list task (protected, paginated)
+- `POST /api/tasks` — create a task
+- `GET /api/tasks/:id` / `PUT` / `PATCH` / `DELETE` — task operations (protected, ownership checked)
+- `GET /api/logs` — recent activity log
+- `GET /api/logs/csv` — export activity log as CSV
