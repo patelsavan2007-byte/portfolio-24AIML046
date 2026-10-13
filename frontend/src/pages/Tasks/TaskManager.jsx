@@ -1,9 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { getCurrentUser, logout } from "../../services/authService";
 import { fetchTasks as apiFetchTasks, createTask, updateTask, deleteTask } from "../../services/taskService";
+import CachePerformancePanel from "./components/CachePerformancePanel";
 import "./TaskManager.css";
+
+// Supplementary: Component-level lazy loading for heavy analytics chart
+const TaskStatsChart = lazy(() => import("./components/TaskStatsChart"));
 
 const emptyForm = { title: "", description: "", status: "pending", priority: "medium" };
 
@@ -64,6 +68,7 @@ function TaskManager() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [lastQueryInfo, setLastQueryInfo] = useState(null);
   const [confirmModal, setConfirmModal] = useState({
     open: false,
     variant: "",
@@ -109,6 +114,14 @@ function TaskManager() {
           ? res.data.tasks
           : [];
 
+        const isHit = res.headers["x-cache"] === "HIT" || res.data.cached;
+        setLastQueryInfo({
+          cached: isHit,
+          source: res.data.source || (isHit ? "node-cache" : "mongodb"),
+          responseTimeMs: res.data.responseTimeMs,
+          status: res.headers["x-cache"] || (isHit ? "HIT" : "MISS"),
+        });
+
         setTasks(tasksFromResponse);
         setCurrentPage(res.data.currentPage ?? page);
         setTotalPages(res.data.totalPages ?? 1);
@@ -116,7 +129,6 @@ function TaskManager() {
       } catch (err) {
         if (err.response?.status === 401) {
           setIsAuthenticated(false);
-          setTasks([]);
         } else {
           toast.error(err.response?.data?.error?.message || "Failed to fetch tasks");
         }
@@ -124,11 +136,10 @@ function TaskManager() {
         setLoading(false);
       }
     },
-    [isAuthenticated, selectedStatus]
+    [selectedStatus]
   );
 
   useEffect(() => {
-    if (!isAuthenticated) return;
     let cancelled = false;
     const timer = setTimeout(() => {
       if (!cancelled) fetchTasks(1);
@@ -137,7 +148,7 @@ function TaskManager() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [isAuthenticated, selectedStatus, fetchTasks]);
+  }, [selectedStatus, isAuthenticated, fetchTasks]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -318,9 +329,19 @@ function TaskManager() {
         </div>
 
         {/* Tasks Section */}
-        {isAuthenticated && (
-          <div className="tm-tasks-section">
-            {/* Status Tabs */}
+        <div className="tm-tasks-section">
+          {/* Practical 9: In-Memory Cache Performance Monitor & Benchmark */}
+          <CachePerformancePanel
+            onRefreshTasks={() => fetchTasks(currentPage)}
+            lastQueryInfo={lastQueryInfo}
+          />
+
+          {/* Component-level Lazy Loaded Analytics Chart */}
+          <Suspense fallback={<div className="tm-loading">Loading task analytics...</div>}>
+            <TaskStatsChart tasks={tasks} />
+          </Suspense>
+
+          {/* Status Tabs */}
             <div className="tm-status-tabs">
               <button
                 className={`tm-tab ${selectedStatus === "all" ? "tm-tab-active" : ""}`}
@@ -442,10 +463,9 @@ function TaskManager() {
               </>
             )}
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Confirmation Modal */}
+        {/* Confirmation Modal */}
       {confirmModal.open && (
         <ConfirmModal
           title={confirmModal.title}

@@ -1,0 +1,120 @@
+.task-stats-card {
+  background: var(--card-bg, rgba(17, 16, 32, 0.7));
+  border: 1px solid var(--card-border, rgba(139, 92, 246, 0.15));
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.3s ease;
+}
+
+.task-stats-card:hover {
+  border-color: var(--card-hover-border, rgba(139, 92, 246, 0.4));
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.stats-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stats-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent-light, #c084fc);
+}
+
+.stats-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.completion-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.completion-number {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #22c55e;
+}
+
+.completion-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9ca3af);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.stats-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #22c55e 100%);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stats-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.metric-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.metric-count {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9ca3af);
+  margin-top: 4px;
+}
+
+.metric-completed .metric-count {
+  color: #22c55e;
+}
+
+.metric-progress .metric-count {
+  color: #3b82f6;
+}
+
+.metric-pending .metric-count {
+  color: #eab308;
+}
+
+.metric-high .metric-count {
+  color: #ef4444;
+}

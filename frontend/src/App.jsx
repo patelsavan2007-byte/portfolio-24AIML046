@@ -1,20 +1,39 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home/Home";
-import Tasks from "./pages/Tasks/TaskManager";
-import Login from "./pages/Tasks/Auth/Login";
-import Register from "./pages/Tasks/Auth/Register";
 import "./App.css";
 import "./index.css";
+
+// Route-based code splitting using React.lazy()
+const Home = lazy(() => import("./pages/Home/Home"));
+const Projects = lazy(() => import("./pages/Projects"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Tasks = lazy(() => import("./pages/Tasks/TaskManager"));
+const Login = lazy(() => import("./pages/Tasks/Auth/Login"));
+const Register = lazy(() => import("./pages/Tasks/Auth/Register"));
+
+// Meaningful fallback UI for Suspense
+function PageLoader() {
+  return (
+    <div className="loading-fallback" id="route-loading-fallback">
+      <div className="loading-spinner"></div>
+      <p>Loading page...</p>
+    </div>
+  );
+}
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/tasks" element={<Tasks />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/tasks" element={<Tasks />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

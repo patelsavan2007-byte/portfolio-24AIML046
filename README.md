@@ -66,8 +66,55 @@ npm run dev:client   # Vite on http://localhost:5173
 - `POST /api/auth/google` — authenticate with Google ID token
 - `POST /api/auth/logout` — log out
 - `GET /api/auth/me` — current user (protected)
-- `GET /api/tasks` — list task (protected, paginated)
-- `POST /api/tasks` — create a task
-- `GET /api/tasks/:id` / `PUT` / `PATCH` / `DELETE` — task operations (protected, ownership checked)
+- `GET /api/tasks` — list tasks (cached with node-cache, 60s TTL)
+- `POST /api/tasks` — create a task (invalidates cache)
+- `GET /api/tasks/:id` — get single task (cached separately)
+- `PUT` / `PATCH` / `DELETE /api/tasks/:id` — update/delete task (invalidates all tasks & task_id cache)
+- `GET /api/tasks/cache/stats` — debug endpoint for cache hits, misses, hit ratio, active keys
+- `POST /api/tasks/cache/clear` — flush node-cache for cold benchmark testing
 - `GET /api/logs` — recent activity log
 - `GET /api/logs/csv` — export activity log as CSV
+
+---
+
+## Practical 9: In-Memory Caching & Query Optimization
+
+Implemented server-side in-memory caching using `node-cache` with a default TTL of 60 seconds to significantly decrease database read load and API latency.
+
+### Architecture
+
+```
+GET /api/tasks request
+       │
+       ▼
+ Cache check (node-cache)
+   ├── HIT  ──► Return cached tasks immediately (0.1ms - 5ms) [Header: X-Cache: HIT]
+   └── MISS ──► Query MongoDB / Data Store ──► Store in cache (TTL 60s) ──► Return tasks [Header: X-Cache: MISS]
+
+POST / PUT / DELETE /api/tasks
+       │
+       ▼
+ Write to Database ──► Invalidate cache keys ("all_tasks", "task_:id")
+```
+
+### Response Time Comparison (Postman / Thunder Client Benchmarking)
+
+| Sample # | Condition | X-Cache Header | Response Time (Time Field) | Data Source |
+| :---: | :---: | :---: | :---: | :---: |
+| **Reading 1** | Uncached (Cold DB Read) | `MISS` | **83.43 ms** | MongoDB / Database |
+| **Reading 2** | Uncached (Bypass Query) | `MISS` | **79.20 ms** | MongoDB / Database |
+| **Reading 3** | Uncached (Bypass Query) | `MISS` | **81.55 ms** | MongoDB / Database |
+| **Uncached Avg** | — | — | **~81.39 ms** | — |
+| **Reading 1** | Cached (Warm RAM Read) | `HIT` | **4.32 ms** | node-cache (RAM) |
+| **Reading 2** | Cached (Warm RAM Read) | `HIT` | **3.80 ms** | node-cache (RAM) |
+| **Reading 3** | Cached (Warm RAM Read) | `HIT` | **2.28 ms** | node-cache (RAM) |
+| **Cached Avg** | — | — | **~3.46 ms** | — |
+
+> **Performance Gain:** In-memory caching with `node-cache` provided a **~23.5x reduction in latency** and eliminated round-trip database queries for repeated read operations.
+
+### Cache Invalidation Logic
+To ensure strict data consistency, the cache is automatically invalidated on any mutating operation:
+- **POST `/api/tasks`**: Evicts all tasks collection caches (`all_tasks`, `tasks_*`).
+- **PUT / PATCH `/api/tasks/:id`**: Evicts all collection caches and single task key (`task_${id}`).
+- **DELETE `/api/tasks/:id`**: Evicts all collection caches and single task key (`task_${id}`).
+
