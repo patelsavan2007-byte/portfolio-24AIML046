@@ -10,6 +10,8 @@ import { getLogs, exportLogsAsCSV } from "./middleware/activityLogger.js";
 import authRoutes from "./routes/auth.js";
 import taskRoutes from "./routes/tasks.js";
 import { connectDB } from "./config/db.js";
+// Practical 10: Register EventEmitter listeners at server startup
+import "./listeners.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(__dirname, "../.env") });

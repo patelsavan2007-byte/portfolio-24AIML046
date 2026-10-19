@@ -118,3 +118,51 @@ To ensure strict data consistency, the cache is automatically invalidated on any
 - **PUT / PATCH `/api/tasks/:id`**: Evicts all collection caches and single task key (`task_${id}`).
 - **DELETE `/api/tasks/:id`**: Evicts all collection caches and single task key (`task_${id}`).
 
+---
+
+## Practical 10: Asynchronous Processing with Event-Driven Architecture
+
+Implemented non-blocking background processing using Node.js built-in `EventEmitter` to decouple side-effects (notifications, slow tasks) from the critical API request-response cycle.
+
+### Architecture
+
+```
+POST /api/tasks request
+       │
+       ▼
+ Save task to Database / Memory
+       │
+       ├───────────────────────────────┐
+       ▼                               ▼
+ [API] Response sent (201)       taskEvents.emit('task-created', task)
+ (Responds in ~5-15ms)                 │
+                                       ▼
+                             Notification Listener (Asynchronous)
+                               ├── Logs: Task title, ISO timestamp, assigned user
+                               └── Simulated slow handler (setTimeout 2000ms)
+                                     └── [Notification] Handler finished at <ISO time>
+```
+
+### Event Listeners (`server/listeners.js`)
+1. **`task-created`**:
+   - Logs: `[Notification] Task "<title>" created at <ISO time>, assigned to <user>`
+   - Simulates a slow notification service via `setTimeout` (2-second artificial delay), then logs `[Notification] Handler finished at <ISO time>`.
+2. **`task-deleted`**:
+   - Logs: `[Notification] Task "<title>" (ID: <id>) deleted at <ISO time>`
+3. **`task-error`**:
+   - Catches and logs errors thrown inside event handlers: `[Notification] Error in task processing at <ISO time>: <message>`
+4. **`error`**:
+   - Prevents Node process crashes caused by unhandled EventEmitter error events.
+
+### Proof of Non-Blocking Asynchronous Behavior (Console Log Evidence)
+
+```
+[API] Response sent at 2026-10-19T07:16:10.711Z
+[Notification] Task "Study Event-Driven Architecture" created at 2026-10-19T07:16:10.715Z, assigned to Unassigned
+[Notification] Handler finished at 2026-10-19T07:16:12.721Z
+```
+
+Notice:
+- The **API response was returned immediately** at `07:16:10.711Z` (~15ms response time in Postman).
+- The slow notification handler completed **2.010 seconds later** at `07:16:12.721Z` without adding any latency to the client request.
+

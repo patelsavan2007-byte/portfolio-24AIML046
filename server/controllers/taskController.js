@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Task, validateTaskBody } from "../models/taskModel.js";
 import { logActivity } from "../middleware/activityLogger.js";
 import { cache } from "../utils/cache.js";
+import taskEvents from "../events.js";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
@@ -270,7 +271,13 @@ export async function createTask(req, res, next) {
       cache.invalidateTasksCache();
       console.log("[node-cache] Invalidated task caches following POST /tasks");
 
-      return res.status(201).json({ task: newTask });
+      // Practical 10: Log API response timestamp and send 201 response BEFORE emitting event
+      console.log(`[API] Response sent at ${new Date().toISOString()}`);
+      res.status(201).json(newTask);
+
+      // Emit event asynchronously AFTER response is sent (non-blocking)
+      taskEvents.emit("task-created", newTask);
+      return;
     }
 
     const task = await Task.create(taskData);
@@ -280,7 +287,12 @@ export async function createTask(req, res, next) {
     cache.invalidateTasksCache();
     console.log("[node-cache] Invalidated task caches following POST /tasks");
 
-    res.status(201).json({ task });
+    // Practical 10: Log API response timestamp and send 201 response BEFORE emitting event
+    console.log(`[API] Response sent at ${new Date().toISOString()}`);
+    res.status(201).json(task);
+
+    // Emit event asynchronously AFTER response is sent (non-blocking)
+    taskEvents.emit("task-created", task);
   } catch (err) {
     next(err);
   }
@@ -392,10 +404,16 @@ export async function deleteTask(req, res, next) {
     cache.invalidateTasksCache(id);
     console.log(`[node-cache] Invalidated task caches following DELETE /tasks/${id}`);
 
-    return res.status(200).json({
+    // Practical 10: Log API response timestamp and send 200 response BEFORE emitting event
+    console.log(`[API] Response sent at ${new Date().toISOString()}`);
+    res.status(200).json({
       message: `Task '${task.title}' deleted successfully.`,
       task,
     });
+
+    // Emit event asynchronously AFTER response is sent (non-blocking)
+    taskEvents.emit("task-deleted", task);
+    return;
   }
 
   try {
@@ -420,10 +438,15 @@ export async function deleteTask(req, res, next) {
     cache.invalidateTasksCache(id);
     console.log(`[node-cache] Invalidated task caches following DELETE /tasks/${id}`);
 
+    // Practical 10: Log API response timestamp and send 200 response BEFORE emitting event
+    console.log(`[API] Response sent at ${new Date().toISOString()}`);
     res.status(200).json({
       message: `Task '${task.title}' deleted successfully.`,
       task,
     });
+
+    // Emit event asynchronously AFTER response is sent (non-blocking)
+    taskEvents.emit("task-deleted", task);
   } catch (err) {
     next(err);
   }

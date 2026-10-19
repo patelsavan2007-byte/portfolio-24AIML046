@@ -11,7 +11,28 @@ import {
   clearCacheDebug,
 } from "../controllers/taskController.js";
 
+import taskEvents from "../events.js";
+
 const router = Router();
+
+// Practical 10 Supplementary: Test endpoint to demonstrate 'task-error' event listener
+router.get("/test/error-event", (req, res) => {
+  console.log(`[API] Response sent at ${new Date().toISOString()} (triggering error-event demonstration)`);
+  res.status(200).json({
+    message: "Triggered invalid task payload to demonstrate task-error event listener.",
+    timestamp: new Date().toISOString(),
+  });
+  taskEvents.emit("task-created", {});
+});
+
+router.post("/test/error-event", (req, res) => {
+  console.log(`[API] Response sent at ${new Date().toISOString()} (triggering error-event demonstration)`);
+  res.status(200).json({
+    message: "Triggered invalid task payload to demonstrate task-error event listener.",
+    timestamp: new Date().toISOString(),
+  });
+  taskEvents.emit("task-created", {});
+});
 
 // Practical 9 Supplementary: Cache debug, counter & management endpoints
 router.get("/cache/stats", getCacheDebugStats);
