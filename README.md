@@ -166,3 +166,111 @@ Notice:
 - The **API response was returned immediately** at `07:16:10.711Z` (~15ms response time in Postman).
 - The slow notification handler completed **2.010 seconds later** at `07:16:12.721Z` without adding any latency to the client request.
 
+---
+
+## Practical 11: Containerization with Docker & Docker Compose
+
+Containerized the full-stack Task Management application (React frontend, Node.js/Express backend, and MongoDB database) using Docker and orchestrated multi-container deployment via Docker Compose.
+
+### Architecture
+
+```
+                       Host Machine (Browser: http://localhost:5173)
+                                      │
+            ┌─────────────────────────┴─────────────────────────┐
+            │                                                   │
+            ▼ (port 5173)                                       ▼ (port 5000)
+┌───────────────────────┐                           ┌───────────────────────┐
+│       frontend        │                           │        backend        │
+│    (React / Nginx)    │                           │    (Node.js / Express)│
+└───────────┬───────────┘                           └───────────┬───────────┘
+            │                                                   │
+            │           Docker Network (app-network)            │
+            └───────────────────────────────────────────────────┤
+                                                                ▼ (service: mongodb:27017)
+                                                    ┌───────────────────────┐
+                                                    │        mongodb        │
+                                                    │   (Official Image)    │
+                                                    └───────────┬───────────┘
+                                                                │
+                                                                ▼
+                                                    Named Volume: mongo-data
+                                                    (Persistent Storage)
+```
+
+### Services Overview (`docker-compose.yml`)
+
+1. **`frontend` (React + Nginx)**:
+   - **Multi-Stage Build**: Stage 1 uses `node:18` to build the static React assets (`npm run build`); Stage 2 uses `nginx:alpine` to serve production assets on port **5173** (reduces image size from ~1.2 GB to ~45 MB).
+   - **Port**: `5173:5173`
+   - **Depends on**: `backend`
+2. **`backend` (Node.js + Express API)**:
+   - Built from `./server/Dockerfile` using `node:18`.
+   - **Port**: `5000:5000`
+   - **Depends on**: `mongodb`
+   - **Environment**: Connects to MongoDB via service name `MONGO_URI=mongodb://mongodb:27017/taskdb` across `app-network`.
+3. **`mongodb` (Official Database Image)**:
+   - **Image**: `mongo:latest`
+   - **Port**: `27017:27017`
+   - **Volume**: Bound to named volume `mongo-data:/data/db` ensuring data persists across container restarts and rebuilds.
+4. **`app-network`**:
+   - Custom Docker bridge network allowing inter-container DNS resolution (`mongodb`, `backend`).
+
+---
+
+### How to Run with Docker
+
+#### 1. Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine) installed and running.
+- Verify installation:
+  ```sh
+  docker --version
+  docker compose version
+  ```
+
+#### 2. Start the Entire Stack
+From the project root (`MyPortFolio/`), run:
+```sh
+docker-compose up --build
+```
+*(Or using Docker CLI v2: `docker compose up --build`)*
+
+This single command automatically:
+- Builds the multi-stage React frontend image.
+- Builds the Express backend image.
+- Pulls the official MongoDB image.
+- Creates the bridge network (`task-app-network`) and named volume (`task-mongo-data`).
+- Starts all 3 containers with the proper dependency order.
+
+#### 3. Access Application Endpoints
+- **Frontend Web UI**: [http://localhost:5173](http://localhost:5173)
+- **Backend API**: [http://localhost:5000](http://localhost:5000)
+- **MongoDB Database**: `mongodb://localhost:27017`
+
+#### 4. Verify Running Containers
+In another terminal, check container statuses:
+```sh
+docker ps
+```
+All 3 containers (`task-frontend`, `task-backend`, `task-mongodb`) should show status `Up`.
+
+#### 5. How to Stop the Application
+To stop all containers and retain data:
+```sh
+docker-compose down
+```
+*(Or press `Ctrl + C` in the running terminal).*
+
+#### 6. How to Verify Data Persistence Across Restarts
+1. Open [http://localhost:5173/tasks](http://localhost:5173/tasks) and create a new task (e.g., `"Docker Persistence Test"`).
+2. Stop the application stack:
+   ```sh
+   docker-compose down
+   ```
+3. Restart the containers:
+   ```sh
+   docker-compose up
+   ```
+4. Reload [http://localhost:5173/tasks](http://localhost:5173/tasks).
+5. The created task `"Docker Persistence Test"` still appears! This proves the named volume (`mongo-data`) safely preserved the data outside the container lifecycle.
+

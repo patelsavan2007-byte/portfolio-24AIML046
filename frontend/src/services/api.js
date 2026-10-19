@@ -1,7 +1,11 @@
 import axios from "axios";
 
+// Practical 11: The browser runs on the host machine, so it connects to the backend via host port 5000
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 

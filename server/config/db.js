@@ -1,33 +1,40 @@
 import mongoose from "mongoose";
 
 export async function connectDB() {
-  const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
-
-  if (MONGO_URI) {
-    try {
-      console.log(
-        "Connecting to MongoDB:",
-        MONGO_URI.replace(/(mongodb\+srv:\/\/[^:]+:)[^@]+(@.*)/, "$1*****$2")
-      );
-      await mongoose.connect(MONGO_URI, {
-        serverSelectionTimeoutMS: 5000,
-      });
-      console.log("MongoDB connected successfully.");
-      return;
-    } catch (error) {
-      console.error("MongoDB Atlas connection failed:", error.message);
-    }
-  } else {
-    console.warn("No MONGODB_URI provided. Falling back to local MongoDB.");
-  }
+  // Practical 11: Support Docker Compose service name via MONGO_URI (mongodb://mongodb:27017/taskdb)
+  // Fall back to MONGODB_URI (e.g., Atlas) or localhost for non-Docker local runs
+  const MONGO_URI =
+    process.env.MONGO_URI ||
+    process.env.MONGODB_URI ||
+    "mongodb://127.0.0.1:27017/taskdb";
 
   try {
-    console.log("Attempting connection to local MongoDB (mongodb://127.0.0.1:27017/taskdb)...");
-    await mongoose.connect("mongodb://127.0.0.1:27017/taskdb", {
-      serverSelectionTimeoutMS: 3000,
+    const sanitizedURI = MONGO_URI.replace(
+      /(mongodb(?:\+srv)?:\/\/[^:]+:)[^@]+(@.*)/,
+      "$1*****$2"
+    );
+    console.log(`Connecting to MongoDB: ${sanitizedURI}`);
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
     });
-    console.log("Connected to local MongoDB successfully.");
-  } catch {
-    console.warn("Warning: Database connection could not be established (Atlas/Local). Server running in limited DB mode.");
+    console.log("MongoDB connected successfully.");
+    return;
+  } catch (error) {
+    console.error("MongoDB connection failed:", error.message);
+  }
+
+  // Fallback to local MongoDB if initial connection was to an external host or container that failed
+  if (!MONGO_URI.includes("127.0.0.1") && !MONGO_URI.includes("localhost")) {
+    try {
+      console.log("Attempting fallback connection to local MongoDB (mongodb://127.0.0.1:27017/taskdb)...");
+      await mongoose.connect("mongodb://127.0.0.1:27017/taskdb", {
+        serverSelectionTimeoutMS: 3000,
+      });
+      console.log("Connected to local MongoDB successfully.");
+    } catch {
+      console.warn("Warning: Database connection could not be established (Atlas/Docker/Local). Server running in limited DB mode.");
+    }
+  } else {
+    console.warn("Warning: Database connection could not be established. Server running in limited DB mode.");
   }
 }
