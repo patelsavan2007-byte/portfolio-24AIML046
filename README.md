@@ -1,5 +1,7 @@
 # My Portfolio
 
+[![CI Pipeline](https://github.com/patelsavan2007-byte/portfolio-24AIML046/actions/workflows/ci.yml/badge.svg)](https://github.com/patelsavan2007-byte/portfolio-24AIML046/actions/workflows/ci.yml)
+
 A full-stack portfolio application with an Express + MongoDB API and a React (Vite) frontend, organized as a monorepo with npm workspaces.
 
 ## Structure
@@ -273,4 +275,47 @@ docker-compose down
    ```
 4. Reload [http://localhost:5173/tasks](http://localhost:5173/tasks).
 5. The created task `"Docker Persistence Test"` still appears! This proves the named volume (`mongo-data`) safely preserved the data outside the container lifecycle.
+
+---
+
+## Practical 12: CI/CD Pipeline with GitHub Actions
+
+Automated continuous integration pipeline configured using GitHub Actions to enforce code quality via ESLint and execute integration tests via Jest upon every `push` and `pull_request` targeting the `main` branch.
+
+### Pipeline Architecture
+
+```
+git push origin main
+       │
+       ▼
+ GitHub Actions Trigger (on: push, pull_request)
+       │
+       ▼
+  Job 1: lint (ESLint)
+  ├── Checkout code
+  ├── Setup Node.js (v18)
+  ├── npm install
+  └── Run ESLint (npm run lint)
+       │
+       ▼ (passes)
+  Job 2: build-and-test (Jest + Supertest) [needs: lint]
+  ├── Checkout code
+  ├── Setup Node.js (v18)
+  ├── npm install
+  └── Run automated tests (npm test)
+       │
+       ▼
+  Status reported on GitHub (Pass: Green checkmark / Fail: Red X)
+```
+
+### Automated Integration Tests (`server/tests/tasks.test.js`)
+- **Test 1**: `GET /tasks` asserts HTTP status `200` and validates task list data structure.
+- **Test 2**: `GET /tasks/:id` asserts HTTP status `200` and verifies single task payload.
+- **Test 3**: `POST /tasks` asserts HTTP status `201` and checks correct creation of task resource.
+- **In-Memory Mock Fallback**: Tests execute cleanly in the CI runner without requiring an external MongoDB instance.
+
+### Workflow Specification (`.github/workflows/ci.yml`)
+- Triggers automatically on `push` and `pull_request` for the `main` branch.
+- Defines sequential dependency: `build-and-test` executes only after `lint` completes successfully (`needs: lint`).
+- Runs in the `server` working directory where backend tests and dependencies are managed.
 

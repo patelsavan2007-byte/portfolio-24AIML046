@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 export async function connectDB() {
+  // Practical 12: Guard DB connection during tests so no real MongoDB instance is required
+  if (process.env.NODE_ENV === "test") {
+    return;
+  }
+
   // Practical 11: Support Docker Compose service name via MONGO_URI (mongodb://mongodb:27017/taskdb)
   // Fall back to MONGODB_URI (e.g., Atlas) or localhost for non-Docker local runs
   const MONGO_URI =
