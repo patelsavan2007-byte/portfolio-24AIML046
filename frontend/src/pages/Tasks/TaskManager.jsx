@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { getCurrentUser, logout } from "../../services/authService";
-import { fetchTasks as apiFetchTasks, createTask, updateTask, deleteTask } from "../../services/taskService";
+import { fetchTasks as apiFetchTasks, createTask, updateTask, deleteTask, generateAiDescription } from "../../services/taskService";
 import CachePerformancePanel from "./components/CachePerformancePanel";
 import "./TaskManager.css";
 
@@ -78,6 +78,13 @@ function TaskManager() {
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+
+  // Practical 13: AI Task Description States
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState(null);
+  const [aiFallback, setAiFallback] = useState(false);
+  const [hasAiSuggestion, setHasAiSuggestion] = useState(false);
+  const [previousDescription, setPreviousDescription] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -150,6 +157,56 @@ function TaskManager() {
     };
   }, [selectedStatus, isAuthenticated, fetchTasks]);
 
+  const resetAiState = () => {
+    setAiLoading(false);
+    setAiMessage(null);
+    setAiFallback(false);
+    setHasAiSuggestion(false);
+    setPreviousDescription("");
+  };
+
+  const handleGenerateAiDescription = async () => {
+    if (!form.title.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiMessage(null);
+    setAiFallback(false);
+
+    try {
+      const res = await generateAiDescription(form.title.trim(), editId);
+      if (res.data?.fallback) {
+        setAiFallback(true);
+        setAiMessage(
+          res.data.message ||
+            "AI suggestion is unavailable right now. You can write the description manually."
+        );
+        setHasAiSuggestion(false);
+      } else if (res.data?.description) {
+        setPreviousDescription(form.description);
+        setForm((prev) => ({ ...prev, description: res.data.description }));
+        setHasAiSuggestion(true);
+        setAiFallback(false);
+        setAiMessage(null);
+      }
+    } catch (err) {
+      // Graceful degradation: never crash or show raw error JSON
+      setAiFallback(true);
+      setAiMessage(
+        err.response?.data?.error?.message ||
+          "AI suggestion is unavailable right now. You can write the description manually."
+      );
+      setHasAiSuggestion(false);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleDiscardAiSuggestion = () => {
+    setForm((prev) => ({ ...prev, description: previousDescription }));
+    setHasAiSuggestion(false);
+    setAiMessage(null);
+    setAiFallback(false);
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -169,6 +226,7 @@ function TaskManager() {
             toast.success("Task updated successfully!");
             setForm(emptyForm);
             setEditId(null);
+            resetAiState();
             fetchTasks(currentPage);
           } catch (err) {
             toast.error(err.response?.data?.error?.message || "Failed to update task");
@@ -182,6 +240,7 @@ function TaskManager() {
       await createTask(form);
       toast.success("Task created successfully!");
       setForm(emptyForm);
+      resetAiState();
       if (isAuthenticated) {
         fetchTasks(1);
       }
@@ -193,6 +252,7 @@ function TaskManager() {
   const handleEdit = (task) => {
     setForm({ title: task.title, description: task.description, status: task.status, priority: task.priority });
     setEditId(task.id);
+    resetAiState();
   };
 
   const handleDelete = (id, title) => {
@@ -216,6 +276,7 @@ function TaskManager() {
   const handleCancel = () => {
     setForm(emptyForm);
     setEditId(null);
+    resetAiState();
   };
 
   const handleLogout = async () => {
@@ -290,15 +351,79 @@ function TaskManager() {
               />
             </div>
 
-            <div className="tm-form-row">
+            <div className="tm-form-row-description">
+              <div className="tm-description-header">
+                <label htmlFor="task-description" className="tm-field-label">
+                  Description
+                </label>
+                <button
+                  type="button"
+                  id="btn-generate-ai-description"
+                  className="tm-btn-ai"
+                  disabled={!form.title.trim() || aiLoading}
+                  onClick={handleGenerateAiDescription}
+                  title={
+                    !form.title.trim()
+                      ? "Enter a task title first to generate an AI description"
+                      : "Generate a practical description using AI (gpt-4o-mini)"
+                  }
+                >
+                  {aiLoading ? (
+                    <>
+                      <span className="tm-ai-spinner" aria-hidden="true"></span>
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="tm-ai-sparkle">✨</span>
+                      <span>Generate description</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
               <textarea
+                id="task-description"
                 name="description"
-                placeholder="Task description (optional)..."
+                placeholder="Task description (optional, or click 'Generate description' above)..."
                 value={form.description}
                 onChange={handleChange}
-                className="tm-textarea"
+                className={`tm-textarea ${hasAiSuggestion ? "tm-textarea-suggested" : ""}`}
                 rows="3"
               />
+
+              {/* Practical 13: Visible disclaimer and Discard action when suggestion is present */}
+              {hasAiSuggestion && (
+                <div className="tm-ai-suggestion-bar">
+                  <div className="tm-ai-disclaimer">
+                    <span className="tm-disclaimer-icon">💡</span>
+                    <span>AI-generated suggestion. Please review before saving.</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="tm-btn-discard-ai"
+                    onClick={handleDiscardAiSuggestion}
+                  >
+                    Discard suggestion
+                  </button>
+                </div>
+              )}
+
+              {/* Practical 13: Non-scary inline fallback notification */}
+              {aiFallback && aiMessage && (
+                <div className="tm-ai-fallback-notice">
+                  <span className="tm-fallback-icon">ℹ️</span>
+                  <span className="tm-fallback-text">{aiMessage}</span>
+                  <button
+                    type="button"
+                    className="tm-btn-dismiss-fallback"
+                    onClick={() => setAiMessage(null)}
+                    title="Dismiss notification"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="tm-form-row">

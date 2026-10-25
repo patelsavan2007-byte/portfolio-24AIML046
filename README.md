@@ -76,6 +76,7 @@ npm run dev:client   # Vite on http://localhost:5173
 - `POST /api/tasks/cache/clear` — flush node-cache for cold benchmark testing
 - `GET /api/logs` — recent activity log
 - `GET /api/logs/csv` — export activity log as CSV
+- `POST /api/ai/generate-description` — AI-powered task description generator with rate limiter and graceful fallback (Practical 13)
 
 ---
 
@@ -318,4 +319,125 @@ git push origin main
 - Triggers automatically on `push` and `pull_request` for the `main` branch.
 - Defines sequential dependency: `build-and-test` executes only after `lint` completes successfully (`needs: lint`).
 - Runs in the `server` working directory where backend tests and dependencies are managed.
+
+---
+
+## Practical 13: AI API Integration into a Web Application
+
+Integrated OpenAI (`gpt-4o-mini`) via a secure Express backend proxy route to provide intelligent, 2-to-3 sentence task description suggestions directly in the React Task creation form, featuring graceful degradation, rate limiting, and responsible AI governance.
+
+### Architecture & Security Flow
+
+```
+React Frontend (Task Creation Form)
+       │
+       │ 1. Click "Generate description"
+       │    (Sends: { title })
+       ▼
+Express Backend (/api/ai/generate-description)
+       │
+       ├── Rate Limiter Check (In-memory Map: Max 1 request/task/minute)
+       │    └── Exceeded: Returns 200 with fallback: true, rateLimited: true
+       │
+       ├── Environment Check (OPENAI_API_KEY stored server-side only in .env)
+       │    └── Missing/Placeholder: Returns 200 with fallback: true
+       │
+       │ 2. Proxy request with 10s timeout guard
+       ▼
+OpenAI API (gpt-4o-mini)
+       │
+       ├── Success: Returns generated 2-3 sentence task description
+       └── Failure / Timeout / Quota: Caught by try/catch
+            └── Returns 200 with { description: "", fallback: true, message: "..." }
+       │
+       ▼
+React UI updates
+       ├── Editable suggestion filled in textarea
+       ├── "Discard suggestion" option appears
+       ├── Visible disclaimer: "AI-generated suggestion. Please review before saving."
+       └── Core task creation continues to work normally
+```
+
+### Key Engineering Features
+
+1. **Server-Side API Key Storage**:
+   - The `OPENAI_API_KEY` is loaded strictly on the Express backend from `.env`.
+   - The key is **never** exposed in frontend bundle files or browser network calls.
+   - `.env` is excluded in `.gitignore`; `.env.example` provides committed template placeholders.
+2. **Graceful Degradation**:
+   - If the AI API fails (e.g., invalid key, 401 unauthorized, rate quota, network timeout), the backend catches the error and returns HTTP `200` with `{ description: "", fallback: true, message: "..." }`.
+   - The frontend displays a non-blocking, non-scary inline notification. The user can continue creating and saving tasks manually without disruption.
+3. **10-Second Request Timeout**:
+   - Both the OpenAI client and request options are capped with a 10,000ms timeout to prevent hanging connections from blocking server threads or client UI.
+4. **In-Memory Rate Limiting**:
+   - Simple rate limit without external packages: Max 1 AI request per task/title per 60 seconds using an in-memory `Map`. Returns remaining seconds before next request is permitted.
+5. **User Agency & Responsible AI**:
+   - The output is placed in the description field as an **editable suggestion**, allowing the user to refine or discard it (`Discard suggestion`).
+   - Displays a prominent disclaimer: *"AI-generated suggestion. Please review before saving."*
+   - Avoids sending sensitive personally identifiable information (PII) or credentials to external AI APIs.
+
+### Environment Setup (`.env` vs `.env.example`)
+
+1. Copy `.env.example` to `.env`:
+   ```sh
+   cp .env.example .env
+   ```
+2. Open `.env` and add your active OpenAI API key:
+   ```env
+   OPENAI_API_KEY=sk-proj-your_actual_key_here
+   ```
+3. Never commit `.env` to GitHub. Always verify using:
+   ```sh
+   git status
+   ```
+
+### Postman Testing Guide
+
+#### 1. Success Path
+- **Method**: `POST`
+- **URL**: `http://localhost:5000/api/ai/generate-description`
+- **Headers**: `Content-Type: application/json`
+- **Request Body**:
+  ```json
+  {
+    "title": "Build Docker image for Task Manager"
+  }
+  ```
+- **Expected Success Response** (`200 OK`):
+  ```json
+  {
+    "description": "Create a multi-stage Dockerfile to containerize the application efficiently. Build and tag the Docker image locally to ensure all dependencies and runtime configurations work as expected.",
+    "fallback": false
+  }
+  ```
+
+#### 2. Graceful Fallback Path (Invalid or Missing API Key)
+- **Method**: `POST`
+- **URL**: `http://localhost:5000/api/ai/generate-description`
+- **Request Body**:
+  ```json
+  {
+    "title": "Test AI Fallback Feature"
+  }
+  ```
+- **Expected Fallback Response** (`200 OK`):
+  ```json
+  {
+    "description": "",
+    "fallback": true,
+    "message": "AI suggestion is unavailable right now. You can write the description manually."
+  }
+  ```
+
+#### 3. Rate Limit Exceeded Path
+- Send the same request twice within 60 seconds:
+- **Expected Rate Limited Response** (`200 OK`):
+  ```json
+  {
+    "description": "",
+    "fallback": true,
+    "rateLimited": true,
+    "message": "Rate limit: Please wait 58s before requesting another AI description for this task."
+  }
+  ```
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { fetchTasks, getCacheStats, clearCache } from "../../../services/taskService";
 import "./CachePerformancePanel.css";
@@ -57,7 +57,7 @@ function CachePerformancePanel({ onRefreshTasks, lastQueryInfo }) {
       toast.success(isHit ? `Cache HIT: ${res.data.responseTimeMs ?? duration} ms` : `Cache MISS: ${res.data.responseTimeMs ?? duration} ms`);
       loadStats();
       if (onRefreshTasks) onRefreshTasks();
-    } catch (err) {
+    } catch {
       toast.error("Failed to execute cached request");
     }
   };
@@ -77,7 +77,7 @@ function CachePerformancePanel({ onRefreshTasks, lastQueryInfo }) {
       toast("Uncached Request: " + (res.data.responseTimeMs ?? duration) + " ms", { icon: "⚡" });
       loadStats();
       if (onRefreshTasks) onRefreshTasks();
-    } catch (err) {
+    } catch {
       toast.error("Failed to execute uncached request");
     }
   };
@@ -87,7 +87,7 @@ function CachePerformancePanel({ onRefreshTasks, lastQueryInfo }) {
       await clearCache();
       toast.success("Cache cleared! Next read will be a MISS.");
       loadStats();
-    } catch (err) {
+    } catch {
       toast.error("Failed to clear cache");
     }
   };

@@ -41,3 +41,8 @@ export async function clearCache() {
   return api.post("/tasks/cache/clear");
 }
 
+// Practical 13: AI Task Description Generation (Calls backend /api/ai proxy)
+export async function generateAiDescription(title, taskId = null) {
+  return api.post("/ai/generate-description", { title, taskId });
+}
+

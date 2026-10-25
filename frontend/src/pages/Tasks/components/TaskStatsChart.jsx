@@ -1,4 +1,3 @@
-import React from "react";
 import "./TaskStatsChart.css";
 
 function TaskStatsChart({ tasks = [] }) {
@@ -8,8 +7,6 @@ function TaskStatsChart({ tasks = [] }) {
   const pending = tasks.filter((t) => t.status === "pending").length;
 
   const highPriority = tasks.filter((t) => t.priority === "high").length;
-  const mediumPriority = tasks.filter((t) => t.priority === "medium").length;
-  const lowPriority = tasks.filter((t) => t.priority === "low").length;
 
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 

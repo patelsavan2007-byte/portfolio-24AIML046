@@ -9,11 +9,13 @@ import errorHandler from "./middleware/errorHandler.js";
 import { getLogs, exportLogsAsCSV } from "./middleware/activityLogger.js";
 import authRoutes from "./routes/auth.js";
 import taskRoutes from "./routes/tasks.js";
+import aiRoutes from "./routes/ai.js";
 // Practical 10: Register EventEmitter listeners at application startup
 import "./listeners.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(__dirname, "../.env") });
+dotenv.config({ path: resolve(__dirname, ".env") });
 
 const app = express();
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
@@ -39,6 +41,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 // Practical 12: Mount on /tasks as well to support direct /tasks test calls
 app.use("/tasks", taskRoutes);
+// Practical 13: Mount AI routes for intelligent task descriptions
+app.use("/api/ai", aiRoutes);
+app.use("/ai", aiRoutes);
 
 // GET /api/logs - read activity log (newest first)
 app.get("/api/logs", (req, res) => {
