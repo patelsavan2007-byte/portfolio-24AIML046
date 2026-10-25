@@ -25,8 +25,11 @@ function pruneRateLimitMap() {
  * POST /api/ai/generate-description
  * Body: { title: string, taskId?: string }
  *
- * Generates a concise, practical task description (2-3 sentences) using OpenAI (gpt-4o-mini).
- * Incorporates:
+ * Generates a concise, practical task description (2-3 sentences) using either:
+ * - Google Gemini API (gemini-1.5-flash via fetch) if GEMINI_API_KEY is configured
+ * - OpenAI (gpt-4o-mini via official SDK) if OPENAI_API_KEY is configured
+ *
+ * Features:
  * 1. Request validation (title required, max 200 chars).
  * 2. In-memory rate limiting (max 1 request per task/title per minute).
  * 3. 10-second request timeout to prevent hanging connections.
@@ -75,10 +78,15 @@ router.post("/generate-description", async (req, res) => {
   // Record timestamp for rate limiting
   rateLimitMap.set(rateLimitKey, now);
 
-  // 3. Graceful degradation: Check if API key is present and not a dummy placeholder
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey === "your_openai_api_key_here" || apiKey.trim() === "") {
-    console.warn("[AI Route] No valid OPENAI_API_KEY configured. Providing graceful fallback response.");
+  // 3. Graceful degradation: Check available API keys
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
+
+  const isGeminiConfigured = geminiKey && !geminiKey.includes("your_") && geminiKey.length > 5;
+  const isOpenAiConfigured = openAiKey && !openAiKey.includes("your_") && openAiKey.length > 5;
+
+  if (!isGeminiConfigured && !isOpenAiConfigured) {
+    console.warn("[AI Route] No valid GEMINI_API_KEY or OPENAI_API_KEY configured. Providing graceful fallback response.");
     return res.status(200).json({
       description: "",
       fallback: true,
@@ -86,44 +94,100 @@ router.post("/generate-description", async (req, res) => {
     });
   }
 
-  // 4. Call OpenAI API with timeout and robust error catching
+  // 4. Call AI Provider with 10-second timeout guard
   try {
-    // Initialize OpenAI client with a 10-second timeout guard
-    const client = new OpenAI({
-      apiKey: apiKey.trim(),
-      timeout: 10000, // 10 seconds timeout
-    });
+    let description = "";
 
-    const completion = await client.chat.completions.create(
-      {
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a helpful assistant for a task management app. Write a short, practical task description (2-3 sentences) based on the user's task title. Do not include quotes, markdown headings, or conversational filler.",
-          },
-          {
-            role: "user",
-            content: `Write a short, practical task description (2-3 sentences) for: ${cleanTitle}`,
-          },
-        ],
-        max_tokens: 150,
-        temperature: 0.7,
-      },
-      { timeout: 10000 } // 10-second timeout option
-    );
+    // Priority 1: Google Gemini API (via native fetch)
+    if (isGeminiConfigured) {
+      const modelsToTry = [
+        "gemini-1.5-flash",
+        "gemini-2.0-flash",
+        "gemini-2.5-flash",
+        "gemini-3.8-flash",
+      ];
+      let lastErrorMessage = "Failed to generate description from Gemini.";
 
-    const description = completion.choices[0]?.message?.content?.trim() || "";
+      for (const model of modelsToTry) {
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+          const response = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `You are a concise assistant for a task management application. Write a short, practical task description (2-3 sentences) for: ${cleanTitle}. Do not include markdown headers, quotes, or conversational filler.`,
+                    },
+                  ],
+                },
+              ],
+              generationConfig: {
+                maxOutputTokens: 150,
+                temperature: 0.7,
+              },
+            }),
+            signal: AbortSignal.timeout(10000), // 10-second timeout
+          });
+
+          const data = await response.json();
+          if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+            description = data.candidates[0].content.parts[0].text.trim();
+            break;
+          } else if (data.error?.message) {
+            lastErrorMessage = data.error.message;
+          }
+        } catch (modelErr) {
+          lastErrorMessage = modelErr.message;
+        }
+      }
+
+      if (!description) {
+        throw new Error(lastErrorMessage);
+      }
+    }
+    // Priority 2: OpenAI API (gpt-4o-mini via SDK)
+    else if (isOpenAiConfigured) {
+      const client = new OpenAI({
+        apiKey: openAiKey,
+        timeout: 10000,
+      });
+
+      const completion = await client.chat.completions.create(
+        {
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a helpful assistant for a task management app. Write a short, practical task description (2-3 sentences) based on the user's task title. Do not include quotes, markdown headings, or conversational filler.",
+            },
+            {
+              role: "user",
+              content: `Write a short, practical task description (2-3 sentences) for: ${cleanTitle}`,
+            },
+          ],
+          max_tokens: 150,
+          temperature: 0.7,
+        },
+        { timeout: 10000 }
+      );
+
+      description = completion.choices[0]?.message?.content?.trim() || "";
+    }
+
+    if (!description) {
+      throw new Error("No description generated by AI provider.");
+    }
 
     return res.status(200).json({
       description,
       fallback: false,
     });
   } catch (error) {
-    // Practical 13 Graceful Degradation:
-    // On ANY failure (invalid key, network timeout, rate limit, quota exceeded),
-    // return status 200 with fallback: true so the user is never blocked from creating tasks.
+    // Graceful degradation: Catches 401, quota limits, network timeouts, invalid keys
     console.error(`[AI Route] API call failed: ${error.message}`);
     return res.status(200).json({
       description: "",
