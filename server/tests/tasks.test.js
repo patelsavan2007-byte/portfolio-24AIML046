@@ -7,11 +7,10 @@ import app from "../app.js";
  */
 
 describe("Tasks API Integration Tests", () => {
-  // Test 1 (Deliberately broken for Practical 12 CI demo): Expected 404 instead of 200
+  // Test 1 (Lab Manual Requirement - Fixed): Verify GET /tasks returns 200 OK
   test("GET /tasks returns status 200", async () => {
     const res = await request(app).get("/tasks");
-    // DELIBERATE FAILURE: Expecting 404 will fail because GET /tasks actually returns 200
-    expect(res.statusCode).toBe(404);
+    expect(res.statusCode).toBe(200);
     expect(res.body).toBeDefined();
     // Verify response contains data array from task listing
     expect(Array.isArray(res.body.data)).toBe(true);
