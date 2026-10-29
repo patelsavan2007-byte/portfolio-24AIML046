@@ -18,7 +18,8 @@ dotenv.config({ path: resolve(__dirname, "../.env") });
 dotenv.config({ path: resolve(__dirname, ".env") });
 
 const app = express();
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const CLIENT_ORIGIN =
+  process.env.CLIENT_ORIGIN || "https://portfolio-24-aiml-046.vercel.app";
 
 // Google OAuth popup support header
 app.use((req, res, next) => {
