@@ -13,8 +13,8 @@ function Header({ brandName = "Savan Patel", onNavClick }) {
       <NavBar onNavClick={onNavClick} />
 
       {/* Button */}
-      <button className="subscribe-btn" onClick={() => onNavClick("contact")}>
-        Subscribe
+      <button className="hire-btn" onClick={() => onNavClick("contact")}>
+        Hire Me
       </button>
     </header>
   );

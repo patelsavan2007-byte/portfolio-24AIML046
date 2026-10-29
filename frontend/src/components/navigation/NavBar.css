@@ -1,52 +1,106 @@
 .navbar {
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .navbar-links {
   display: flex;
-  gap: 16px;
+  gap: 2rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .navbar-link {
-  color: #d1d5db;
-  font-weight: 500;
+  color: var(--text-secondary);
+  font-weight: 400;
   text-decoration: none;
   font-size: 0.95rem;
-  padding: 8px 16px;
-  border-radius: 30px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  letter-spacing: 0.3px;
-  border: 1px solid transparent;
+  padding: 0.25rem 0;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+  position: relative;
 }
 
 .navbar-link:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--accent);
+}
+
+.navbar-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.navbar-link:hover::after {
+  width: 100%;
 }
 
 .navbar-link.active {
-  color: #ffffff;
-  background-color: var(--accent);
-  box-shadow: 0 4px 12px var(--accent-glow);
-  font-weight: 600;
+  color: var(--accent);
 }
 
-/* Dark theme style tweaks if inline themes change active colors */
-.navbar-link.active[style*="--active-theme"] {
-  background-color: var(--active-theme);
+.navbar-link.active::after {
+  width: 100%;
+}
+
+.hamburger {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--text-primary);
+  margin: 5px 0;
 }
 
 @media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+  
   .navbar-links {
-    gap: 8px;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(10, 15, 30, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: none;
+    padding: 1rem 0;
+  }
+  
+  .navbar-links.open {
+    display: flex;
+  }
+  
+  .navbar-links li {
+    width: 100%;
   }
   
   .navbar-link {
-    font-size: 0.85rem;
-    padding: 6px 12px;
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  
+  .navbar-link::after {
+    display: none;
   }
 }

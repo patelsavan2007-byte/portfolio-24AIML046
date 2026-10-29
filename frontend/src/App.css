@@ -21,50 +21,58 @@
 
 /* Home / Hero Section */
 .home-sec {
-  background: radial-gradient(circle at 50% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
+  background: transparent;
 }
 
 .hero-content {
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 720px;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-left: 6vw;
+  width: 100%;
 }
 
 .hero-name {
-  font-size: 5rem;
+  font-family: var(--heading);
+  font-size: 72px;
   font-weight: 800;
   letter-spacing: -2px;
-  background: linear-gradient(135deg, #ffffff 30%, #a78bfa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
   margin: 0;
   line-height: 1.1;
-  animation: float 6s ease-in-out infinite;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease forwards;
 }
 
 .hero-subtitle {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--accent-light);
-  letter-spacing: 0.5px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.3px;
   margin: 0;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease 0.15s forwards;
 }
 
 .hero-desc {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   line-height: 1.7;
   color: var(--text-secondary);
   max-width: 680px;
-  margin: 0 auto;
+  margin: 0;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease 0.3s forwards;
 }
 
 .hero-buttons {
   display: flex;
-  gap: 1.25rem;
-  margin-top: 1.5rem;
+  gap: 1rem;
+  margin-top: 1rem;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease 0.45s forwards;
 }
 
 /* Button Styles */
@@ -72,42 +80,44 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 0.85rem 2rem;
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-  color: white;
+  padding: 0.7rem 1.6rem;
+  background: var(--accent);
+  color: #0a0f1e;
   font-weight: 600;
   border: none;
-  border-radius: 50px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+  transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
-  background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+  background: var(--accent-hover);
 }
 
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 0.85rem 2rem;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 0.7rem 1.6rem;
+  background: transparent;
   color: var(--text-primary);
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.hero-rule {
+  margin-top: 2rem;
+  width: 60px;
+  border: none;
+  border-top: 1px solid var(--border);
 }
 
 /* Typography Utility for Sections */
@@ -135,34 +145,49 @@
   line-height: 1.6;
 }
 
-/* Float Animation */
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
+/* Fade In Up Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
+/* Float Animation - removed as per design */
 
 @media (max-width: 768px) {
   .section-block {
-    padding: 80px 20px;
+    padding: 60px 20px;
+  }
+  .hero-content {
+    padding-left: 0;
+    align-items: center;
+    text-align: center;
+    max-width: 100%;
   }
   .hero-name {
-    font-size: 3.5rem;
+    font-size: 48px;
   }
   .hero-subtitle {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
   .hero-desc {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
   .hero-buttons {
     flex-direction: column;
     width: 100%;
     gap: 0.75rem;
+    align-items: center;
   }
   .btn-primary, .btn-secondary {
     justify-content: center;
     width: 100%;
+    max-width: 280px;
   }
   .section-title {
     font-size: 2.25rem;

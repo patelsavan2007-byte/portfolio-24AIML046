@@ -4,6 +4,7 @@ import "./NavBar.css";
 
 function NavBar({ onNavClick }) {
   const [activeSection, setActiveSection] = useState("home");
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +29,7 @@ function NavBar({ onNavClick }) {
   const handleClick = (e, id) => {
     e.preventDefault();
     setActiveSection(id);
+    setIsOpen(false);
     if (onNavClick) {
       onNavClick(id);
     }
@@ -35,7 +37,12 @@ function NavBar({ onNavClick }) {
 
   return (
     <nav className="navbar">
-      <ul className="navbar-links">
+      <button className="hamburger" onClick={() => setIsOpen(!isOpen)} aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <ul className={`navbar-links ${isOpen ? "open" : ""}`}>
         {navItems.map((item) => (
           <li key={item.id}>
             <a

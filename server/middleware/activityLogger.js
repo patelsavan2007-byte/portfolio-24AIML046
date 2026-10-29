@@ -3,37 +3,57 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const LOG_DIR = join(__dirname, "..", "logs");
+// On Vercel / serverless environments, only /tmp is writable
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const LOG_DIR = isServerless ? "/tmp/logs" : join(__dirname, "..", "logs");
 const LOG_FILE = join(LOG_DIR, "activity.jsonl");
 const CSV_FILE = join(LOG_DIR, "activity.csv");
 
-if (!existsSync(LOG_DIR)) {
-  mkdirSync(LOG_DIR, { recursive: true });
+function ensureLogDir() {
+  try {
+    if (!existsSync(LOG_DIR)) {
+      mkdirSync(LOG_DIR, { recursive: true });
+    }
+  } catch (err) {
+    console.warn("Could not create log directory:", err.message);
+  }
 }
+
+ensureLogDir();
 
 export function logActivity(action, data, ip) {
   const entry = {
     timestamp: new Date().toISOString(),
     action,
     // Task fields
-    taskId: data.id ?? data._id ?? null,
-    taskTitle: data.title ?? null,
-    taskStatus: data.status ?? null,
-    taskPriority: data.priority ?? null,
+    taskId: data?.id ?? data?._id ?? null,
+    taskTitle: data?.title ?? null,
+    taskStatus: data?.status ?? null,
+    taskPriority: data?.priority ?? null,
     // Auth fields
-    email: data.email ?? null,
-    authMethod: data.authMethod ?? null,
-    googleId: data.googleId ?? null,
+    email: data?.email ?? null,
+    authMethod: data?.authMethod ?? null,
+    googleId: data?.googleId ?? null,
     ip: ip ?? "127.0.0.1",
   };
-  appendFileSync(LOG_FILE, JSON.stringify(entry) + "\n", "utf-8");
+
+  try {
+    ensureLogDir();
+    appendFileSync(LOG_FILE, JSON.stringify(entry) + "\n", "utf-8");
+  } catch (err) {
+    console.warn("Activity logger write error (handled gracefully):", err.message);
+  }
 }
 
 export function getLogs() {
-  if (!existsSync(LOG_FILE)) return [];
-  const raw = readFileSync(LOG_FILE, "utf-8").trim();
-  if (!raw) return [];
-  return raw.split("\n").map((line) => JSON.parse(line)).reverse();
+  try {
+    if (!existsSync(LOG_FILE)) return [];
+    const raw = readFileSync(LOG_FILE, "utf-8").trim();
+    if (!raw) return [];
+    return raw.split("\n").map((line) => JSON.parse(line)).reverse();
+  } catch {
+    return [];
+  }
 }
 
 function escapeCSV(val) {
@@ -65,7 +85,13 @@ export function exportLogsAsCSV() {
 }
 
 export function writeCSVFile() {
-  const csv = exportLogsAsCSV();
-  writeFileSync(CSV_FILE, csv, "utf-8");
-  return CSV_FILE;
+  try {
+    ensureLogDir();
+    const csv = exportLogsAsCSV();
+    writeFileSync(CSV_FILE, csv, "utf-8");
+    return CSV_FILE;
+  } catch (err) {
+    console.warn("CSV write error (handled gracefully):", err.message);
+    return null;
+  }
 }

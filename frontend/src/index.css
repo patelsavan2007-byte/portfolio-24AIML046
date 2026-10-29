@@ -1,19 +1,23 @@
-:root {
-  --bg: #080710;
-  --bg-gradient: radial-gradient(circle at 50% -20%, #1e1548 0%, #080710 65%);
-  --card-bg: rgba(17, 16, 32, 0.7);
-  --card-border: rgba(139, 92, 246, 0.15);
-  --card-hover-border: rgba(139, 92, 246, 0.4);
-  --accent: #8b5cf6;
-  --accent-light: #c084fc;
-  --accent-glow: rgba(139, 92, 246, 0.25);
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border: rgba(255, 255, 255, 0.08);
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
-  --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --heading: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+:root {
+  --bg: #0a0f1e;
+  --bg-secondary: #0d1526;
+  --bg-gradient: radial-gradient(circle at 50% -20%, #0f1a2e 0%, #0a0f1e 65%);
+  --card-bg: rgba(13, 21, 38, 0.8);
+  --card-border: rgba(255, 255, 255, 0.06);
+  --card-hover-border: rgba(6, 182, 212, 0.5);
+  --accent: #06b6d4;
+  --accent-hover: #22d3ee;
+  --accent-glow: rgba(6, 182, 212, 0.15);
+  --secondary: #6366f1;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: rgba(255, 255, 255, 0.06);
+
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --heading: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   font: 16px/150% var(--sans);
@@ -80,9 +84,9 @@ button {
   background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.3);
+  background: rgba(6, 182, 212, 0.3);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.5);
+  background: rgba(6, 182, 212, 0.5);
 }

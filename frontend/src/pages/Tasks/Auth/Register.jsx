@@ -58,26 +58,39 @@ function Register() {
   }, [navigate]);
 
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || !window.google) return;
+    if (!GOOGLE_CLIENT_ID) return;
 
-    const initGoogle = () => {
-      if (window.google?.accounts) {
-        window.google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: handleGoogleCredentialResponse,
-        });
-        if (googleBtnRef.current) {
-          window.google.accounts.id.renderButton(googleBtnRef.current, {
-            theme: "outline",
-            size: "large",
-            width: "100%",
-            text: "continue_with",
-          });
-        }
-      }
+    const renderGoogleBtn = () => {
+      if (!window.google?.accounts?.id || !googleBtnRef.current) return;
+
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredentialResponse,
+      });
+
+      googleBtnRef.current.innerHTML = "";
+      const containerWidth = googleBtnRef.current.offsetWidth || 350;
+      const buttonWidth = Math.min(400, Math.max(200, Math.floor(containerWidth)));
+
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: "outline",
+        size: "large",
+        width: buttonWidth,
+        text: "continue_with",
+      });
     };
 
-    initGoogle();
+    if (window.google?.accounts?.id) {
+      renderGoogleBtn();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(interval);
+          renderGoogleBtn();
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
   }, [handleGoogleCredentialResponse]);
 
   return (

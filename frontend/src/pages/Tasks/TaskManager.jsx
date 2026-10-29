@@ -296,6 +296,10 @@ function TaskManager() {
     <div className="task-manager">
       <Toaster position="top-right" />
 
+      <div className="tm-container">
+        <button className="tm-back-link" onClick={() => navigate("/")}>← Back to Portfolio</button>
+      </div>
+
       {/* Header */}
       <div className="tm-header">
         <div className="tm-header-content">

@@ -1,8 +1,11 @@
 import axios from "axios";
 
-// Connect to the backend API (port 5001 by default to avoid conflict with port 5000)
+// Connect to the backend API:
+// In production on Vercel, defaults to relative "/api" (same origin).
+// In development, falls back to local port 5001. Can be overridden via VITE_API_BASE_URL.
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api";
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? "http://localhost:5001/api" : "/api");
 
 const api = axios.create({
   baseURL: API_BASE_URL,

@@ -16,13 +16,13 @@ function Footer({ brandName = "Savan Patel", onNavClick }) {
           <div className="footer-col brand-col">
             <h3 className="footer-logo">{brandName}</h3>
             <p className="footer-desc-text">
-              Focused on building intelligent machine learning systems, training neural models, and developing clean client interfaces.
+              B.Tech AIML · CHARUSAT University
             </p>
           </div>
 
           {/* Quick Links Section */}
           <div className="footer-col links-col">
-            <h4 className="col-title">Quick Links</h4>
+            <h4 className="col-title">Links</h4>
             <ul className="footer-links">
               <li><a href="#home" onClick={(e) => handleLinkClick(e, "home")}>Home</a></li>
               <li><a href="#about" onClick={(e) => handleLinkClick(e, "about")}>About</a></li>
@@ -37,16 +37,16 @@ function Footer({ brandName = "Savan Patel", onNavClick }) {
             <h4 className="col-title">Connect</h4>
             <ul className="footer-connect-list">
               <li>
-                <span className="connect-label">Email:</span>
                 <a href="mailto:patelsavan2007@gmail.com" className="connect-link">patelsavan2007@gmail.com</a>
               </li>
               <li>
-                <span className="connect-label">GitHub:</span>
-                <a href="https://github.com/patelsavan2007-byte" target="_blank" rel="noopener noreferrer" className="connect-link">github.com/patelsavan2007-byte</a>
+                <a href="tel:+917862054405" className="connect-link">+91 7862054405</a>
               </li>
               <li>
-                <span className="connect-label">LinkedIn:</span>
-                <a href="https://linkedin.com/in/savanpatel" target="_blank" rel="noopener noreferrer" className="connect-link">linkedin.com/in/savanpatel</a>
+                <a href="https://github.com/patelsavan2007-byte" target="_blank" rel="noopener noreferrer" className="connect-link">GitHub</a>
+              </li>
+              <li>
+                <a href="https://linkedin.com/in/savanpatel" target="_blank" rel="noopener noreferrer" className="connect-link">LinkedIn</a>
               </li>
             </ul>
           </div>
@@ -55,10 +55,7 @@ function Footer({ brandName = "Savan Patel", onNavClick }) {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <p className="copyright">
-            &copy; {new Date().getFullYear()} {brandName}. All rights reserved.
-          </p>
-          <p className="credit">
-            AIML 3rd Year Student Portfolio
+            © {new Date().getFullYear()} {brandName}
           </p>
         </div>
       </div>

@@ -3,6 +3,7 @@ import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import About from "../About/About";
 import Skills from "../Skills/Skills";
+import Experience from "../Experience/Experience";
 import Projects from "../Projects/Projects";
 import Contact from "../Contact/Contact";
 import {
@@ -34,27 +35,28 @@ function Home() {
         <section id="home" className="section-block home-sec">
           <div className="hero-content">
             <h1 className="hero-name">{brandName}</h1>
-            <p className="hero-subtitle">AI &amp; ML Developer | 3rd Year AIML Student</p>
+            <p className="hero-subtitle">AI &amp; ML Developer · B.Tech AIML · CHARUSAT University</p>
             <p className="hero-desc">
-              Could intelligent systems enable dynamic applications — from machine learning models and backend systems to the client interfaces? That's what I build.
+              I build intelligent systems — RAG chatbots, computer vision models, and generative AI apps — and deploy them as clean, fast applications.
             </p>
             <div className="hero-buttons">
-              <button className="btn-primary" onClick={() => handleScrollTo("contact")}>
-                Get in Touch
-              </button>
-              <button className="btn-secondary" onClick={() => handleScrollTo("projects")}>
+              <button className="btn-primary" onClick={() => handleScrollTo("projects")}>
                 View Projects
               </button>
+              <button className="btn-secondary" onClick={() => handleScrollTo("contact")}>
+                Get in Touch
+              </button>
             </div>
+            <hr className="hero-rule" />
           </div>
         </section>
 
         <About info={aboutInfo} />
         <Skills categories={skillCategories} />
+        <Experience />
         <Projects />
         <section id="tasks" className="section-block">
           <div className="tasks-card">
-            <span className="section-title-tag">Interactive Demo</span>
             <h2 className="section-title">Task Manager</h2>
             <p className="section-desc">
               A full-stack CRUD app I built with React, Express, and MongoDB.

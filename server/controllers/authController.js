@@ -19,10 +19,11 @@ const JWT_EXPIRY = "1h";
 
 // Cookie options for the auth token
 function getCookieOptions() {
+  const isProduction = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 60 * 60 * 1000, // 1 hour (matches JWT expiry)
   };
 }
@@ -214,6 +215,50 @@ export async function loginWithGoogle(req, res, next) {
     if (!googleId || !email) {
       return res.status(400).json({
         error: { message: "Invalid Google token payload.", status: 400 },
+      });
+    }
+
+    if (!isDBConnected()) {
+      const normalizedEmail = email.toLowerCase();
+      let memUser = null;
+      for (const u of memoryUsers.values()) {
+        if (u.googleId === googleId || u.email === normalizedEmail) {
+          memUser = u;
+          break;
+        }
+      }
+
+      if (memUser) {
+        if (!memUser.googleId) memUser.googleId = googleId;
+        if (firstName) memUser.firstName = firstName;
+        if (lastName) memUser.lastName = lastName;
+        if (avatar) memUser.avatar = avatar;
+      } else {
+        memUser = {
+          _id: "650000000000000000000003",
+          id: "650000000000000000000003",
+          email: normalizedEmail,
+          googleId,
+          firstName: firstName || "",
+          lastName: lastName || "",
+          avatar: avatar || null,
+          authMethod: "google",
+          toJSON() {
+            const { password: _, ...rest } = this;
+            return rest;
+          },
+        };
+        memoryUsers.set(normalizedEmail, memUser);
+      }
+
+      const token = generateToken(memUser._id);
+      res.cookie("taskAuthToken", token, getCookieOptions());
+      logActivity("LOGIN_GOOGLE", { email, googleId }, req.ip);
+
+      return res.status(200).json({
+        message: "Google authentication successful.",
+        user: typeof memUser.toJSON === "function" ? memUser.toJSON() : memUser,
+        token,
       });
     }
 

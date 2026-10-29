@@ -13,10 +13,9 @@ function Contact() {
   return (
     <section id="contact" className="section-block contact-sec">
       <div className="contact-container">
-        <span className="section-title-tag">Get In Touch</span>
-        <h2 className="section-title">Let's Connect</h2>
+        <h2 className="section-title">Get in touch</h2>
         <p className="section-desc">
-          I'm open to internship opportunities, research collaborations, and exciting projects in AI &amp; Machine Learning. Feel free to reach out!
+          Open to internships, research collaborations, and AI/ML projects.
         </p>
 
         <div className="contact-cards-row">
@@ -45,6 +44,23 @@ function Contact() {
               )}
             </button>
           </div>
+
+          {/* Phone Card */}
+          <a href="tel:+917862054405" className="contact-card contact-card-link">
+            <div className="contact-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+            </div>
+            <div className="contact-card-body">
+              <h4 className="contact-card-label">Phone</h4>
+              <p className="contact-card-value">+91 7862054405</p>
+            </div>
+            <svg className="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+          </a>
 
           {/* GitHub Card */}
           <a
@@ -92,7 +108,7 @@ function Contact() {
         </div>
 
         <div className="contact-footer-note">
-          <p>Based in <strong>Vadodara, India</strong> · B.Tech AIML 3rd Year · Open to Internships</p>
+          <p>Modasa, Gujarat, India · B.Tech AIML · CHARUSAT University · Open to Internships</p>
         </div>
       </div>
     </section>
