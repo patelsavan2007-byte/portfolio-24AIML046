@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET =
+  process.env.JWT_SECRET || "portfolio_default_jwt_secret_key_prod_2026";
 
 /**
  * Extract token from either:
