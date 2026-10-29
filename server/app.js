@@ -20,6 +20,12 @@ dotenv.config({ path: resolve(__dirname, ".env") });
 const app = express();
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 
+// Google OAuth popup support header
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  next();
+});
+
 // Built-in middleware
 app.use(
   cors({

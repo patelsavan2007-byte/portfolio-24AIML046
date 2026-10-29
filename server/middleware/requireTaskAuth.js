@@ -33,7 +33,8 @@ export function requireTaskAuth(req, res, next) {
     }
 
     // Verify JWT
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const secret = process.env.JWT_SECRET || JWT_SECRET || "portfolio_default_jwt_secret_key_prod_2026";
+    const decoded = jwt.verify(token, secret);
     req.user = decoded; // Attach user info to request
     next();
   } catch {
@@ -51,7 +52,8 @@ export function optionalTaskAuth(req, res, next) {
   try {
     const token = extractToken(req);
     if (token) {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const secret = process.env.JWT_SECRET || JWT_SECRET || "portfolio_default_jwt_secret_key_prod_2026";
+      const decoded = jwt.verify(token, secret);
       req.user = decoded;
     }
   } catch {

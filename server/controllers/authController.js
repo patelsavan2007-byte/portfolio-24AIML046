@@ -31,7 +31,8 @@ function getCookieOptions() {
 
 // Helper: Generate JWT
 function generateToken(userId) {
-  return jwt.sign({ userId, id: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRY });
+  const secret = process.env.JWT_SECRET || JWT_SECRET || "portfolio_default_jwt_secret_key_prod_2026";
+  return jwt.sign({ userId, id: userId }, secret, { expiresIn: JWT_EXPIRY });
 }
 
 export async function register(req, res, next) {
