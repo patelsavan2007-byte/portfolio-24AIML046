@@ -14,6 +14,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// Only start the server port listener when running locally, not on Vercel
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 export default app;
